@@ -50,12 +50,8 @@ class Relu(ActivationFunction):
         return np.maximum(0, x)
 
     def derivative(self, x):
-        if x < 0:
-            return 0
-        if x > 0:
-            return 1
-        # not differentiable at zero
-        return np.nan
+        deriv = 0 if x < 0 else 1
+        return deriv
 
 
 if __name__ == '__main__':

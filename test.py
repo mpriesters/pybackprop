@@ -9,7 +9,7 @@ import numpy as np
 import neural_network as nn
 
 net = nn.NeuralNetwork(
-    shape=[3, 4, 5, 3, 1],
+    shape=[3, 4, 5, 3],
     activation_function='tanh',
 )
 X = np.array([0.12454, 0.154, 0.874564])
