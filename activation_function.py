@@ -2,7 +2,7 @@
 """
 Activation Functions for a Neural Network with Backpropagation.
 
-Author: Matthias Priesters (mpriesters@users.noreply.github.com)
+Author: Matthias Priesters
 """
 
 from abc import ABC, abstractmethod
@@ -38,8 +38,7 @@ class Sigmoid(ActivationFunction):
         return 1 / (1 + np.exp(-x))
 
     def derivative(self, x):
-        # source: https://towardsdatascience.com/
-        #         derivative-of-the-sigmoid-function-536880cf918e
+        # source: https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e
         return self.function(x) * (1 - self.function(x))
 
 
