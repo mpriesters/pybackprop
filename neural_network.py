@@ -5,8 +5,8 @@ Neural Network with Backpropagation.
 Author: Matthias Priesters
 """
 
+from activation_function import vectorize, TanHyp, Sigmoid, Relu
 import numpy as np
-import activation_function as af
 
 
 class NeuralNetworkLayer:
@@ -37,34 +37,31 @@ class NeuralNetworkLayer:
                f'{nodes} nodes, function {self.theta.__class__.__name__}'))
 
     def activate(self, input_values):
-        self.input_values = input_values
-        self.signal = np.transpose(self.weights) @ self.input_values
-        if type(self.signal) == np.float64:
-            self.signal = np.array([self.signal])
+        # prepend bias node to layer inputs
+        self.input_values = np.vstack([np.array([[1.0]]),
+                                       vectorize(input_values)])
+        self.signal = vectorize(np.transpose(self.weights)
+                                @ self.input_values)
         self.activation = self.theta.function(self.signal)
-        if type(self.activation) == np.float64:
-            self.activation = np.array([self.activation])
-        print('weights: ' + str(self.weights))
-        print('output: ' + str(self.activation))
+        #print('weights: ' + str(self.weights))
+        #print('output: ' + str(self.activation))
         return self.activation
 
     def initialize_delta(self, y):
-        self.delta = (2 * (self.activation - y)
-                      @ self.theta.derivative(self.signal))
-        if type(self.delta) == np.float64:
-            self.delta = np.array([self.delta])
-        print('delta: ' + str(self.delta))
-        return self.delta, self.weights[1:]
+        self.delta = vectorize(2 * (self.activation - y)
+                               @ self.theta.derivative(self.signal))
+        #print('delta: ' + str(self.delta))
+        return self.delta, self.weights[1:]  # leave out the bias weight
 
     def compute_delta(self, delta_next, weights_next):
-        self.delta = (self.theta.derivative(self.signal)
-                      * (weights_next @ delta_next))
-        if type(self.delta) == np.float64:
-            self.delta = np.array([self.delta])
-        print('delta: ' + str(self.delta))
-        return self.delta, self.weights[1:]
+        self.delta = vectorize(self.theta.derivative(self.signal)
+                               * (weights_next @ delta_next))
+        #print('delta: ' + str(self.delta))
+        return self.delta, self.weights[1:]  # leave out the bias weight
 
-    def update_weights(self):
+    def update_weights(self, eta):
+        gradient = self.input_values @ np.transpose(self.delta)
+        self.weights = self.weights - eta * gradient
         return self.weights
 
 
@@ -74,17 +71,21 @@ class NeuralNetwork:
     def __init__(self,
                  shape,
                  weights=None,
-                 activation_function='tanh'):
+                 activation_function='tanh',
+                 eta=1,
+                 k=1):
         # choose proper Activation Function
         if activation_function == 'tanh':
-            self.activation_function = af.TanHyp()
+            self.activation_function = TanHyp()
         elif activation_function == 'sigmoid':
-            self.activation_function = af.Sigmoid()
+            self.activation_function = Sigmoid()
         elif activation_function == 'relu':
-            self.activation_function = af.Relu()
+            self.activation_function = Relu()
         else:
             raise ValueError((f'Unknown Activation Function '
                               f'"{activation_function}"'))
+        self.eta = eta  # learning rate for weight update
+        self.k = k  # maximum number of training iterations
         # initialize Network Layers
         self.layers = []
         if type(shape) not in [list, tuple]:
@@ -108,24 +109,31 @@ class NeuralNetwork:
 
     def fit(self, x_train, y_train):
         # TODO: do this in a loop until the error becomes small
-        # TODO: for each iteration, pick random X (-> SGD)
-        # TODO: for now only one item:
-        x = x_train[0]
-        y = y_train[0]
+        for k in range(0, self.k):
+            # fit to random data point
+            i = np.random.randint(len(x_train))
+            x = x_train[i]
+            y = y_train[i]
 
-        # calculate current prediction
-        self.activate_network(x)
+            print(f'==========\nEPOCH {k}')
+            print(f'i: {i}, x: {x}, y: {y}')
+            # calculate current prediction
+            prediction = self.activate_network(x)
 
-        # backpropagate error
-        # iterating backwards through the layers
-        delta = None
-        weights = None
-        for layer in reversed(self.layers):
-            if layer.output_layer:
-                delta, weights = layer.initialize_delta(y)
-            else:
-                delta, weights = layer.compute_delta(delta, weights)
-        return delta
+            # backpropagate error
+            # iterating backwards through the layers
+            delta = None
+            weights = None
+            for layer in reversed(self.layers):
+                if layer.output_layer:
+                    delta, weights = layer.initialize_delta(y)
+                else:
+                    delta, weights = layer.compute_delta(delta, weights)
+            # update weights according to error
+            for layer in self.layers:
+                upd_weights = layer.update_weights(self.eta)
+                #print(upd_weights)
+            print(f'---> prediction: {prediction}')
 
     def predict(self, x):
         res = np.array([])
@@ -140,8 +148,6 @@ class NeuralNetwork:
                               f'({len(x)}, expected {self.num_inputs})'))
         input_values = x.copy()
         for layer in self.layers:
-            # prepend bias node to layer inputs
-            input_values = np.concatenate((np.array([1.0]), input_values))
             input_values = layer.activate(input_values=input_values)
         return input_values
 

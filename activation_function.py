@@ -7,6 +7,16 @@ Author: Matthias Priesters
 
 from abc import ABC, abstractmethod
 import numpy as np
+import numbers
+
+
+def vectorize(x):
+    """Turn scalars and single-dimension arrays into column vector arrays."""
+    if isinstance(x, (np.number, numbers.Complex)):
+        return np.array([[x]])
+    elif isinstance(x, np.ndarray) and len(x.shape) == 1:
+        return x.reshape(x.shape[0], 1)
+    return x
 
 
 class ActivationFunction(ABC):
@@ -25,32 +35,37 @@ class TanHyp(ActivationFunction):
     """Hyperbolic Tangent Activation Function."""
 
     def function(self, x):
-        return np.tanh(x)
+        res = np.tanh(x)
+        return vectorize(res)
 
     def derivative(self, x):
-        return 1 - (self.function(x))**2
+        res = 1 - (self.function(x))**2
+        return vectorize(res)
 
 
 class Sigmoid(ActivationFunction):
     """Logistic Sigmoid Activation Function."""
 
     def function(self, x):
-        return 1 / (1 + np.exp(-x))
+        res = 1 / (1 + np.exp(-x))
+        return vectorize(res)
 
     def derivative(self, x):
         # source: https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e
-        return self.function(x) * (1 - self.function(x))
+        res = self.function(x) * (1 - self.function(x))
+        return vectorize(res)
 
 
 class Relu(ActivationFunction):
     """Rectified Linear Unit Activation Function."""
 
     def function(self, x):
-        return np.maximum(0, x)
+        res = np.maximum(0, x)
+        return vectorize(res)
 
     def derivative(self, x):
-        deriv = 0 if x < 0 else 1
-        return deriv
+        deriv = 0.0 if x < 0.0 else 1.0
+        return vectorize(deriv)
 
 
 if __name__ == '__main__':
