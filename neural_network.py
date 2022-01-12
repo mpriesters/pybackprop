@@ -48,7 +48,7 @@ class NeuralNetworkLayer:
 
     def initialize_delta(self, y):
         self.delta = vectorize(2 * (self.activation - y)
-                               @ self.theta.derivative(self.signal))
+                               * self.theta.derivative(self.signal))
         #print('delta: ' + str(self.delta))
         return self.delta, self.weights[1:]  # leave out the bias weight
 
@@ -111,11 +111,11 @@ class NeuralNetwork:
         for k in range(0, self.k):
             # fit to random data point
             i = np.random.randint(len(x_train))
-            x = x_train[i]
-            y = y_train[i]
+            x = vectorize(x_train[i])
+            y = vectorize(y_train[i])
 
             print(f'==========\nEPOCH {k}')
-            print(f'i: {i}, x: {x}, y: {y}')
+            print(f'i: {i},\nx: {x},\ny: {y}')
             # calculate current prediction
             prediction = self.activate_network(x)
 
@@ -133,6 +133,8 @@ class NeuralNetwork:
                 upd_weights = layer.update_weights(self.eta)
                 #print(upd_weights)
             print(f'---> prediction: {prediction}')
+            pred_err = np.linalg.norm(y - prediction) ** 2
+            print(f'---> error: {pred_err}')
 
     def predict(self, x):
         res = np.array([])
