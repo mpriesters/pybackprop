@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Activation Functions for a Neural Network with Backpropagation.
 
@@ -66,7 +65,3 @@ class Relu(ActivationFunction):
     def derivative(self, x):
         deriv = 0.0 if x < 0.0 else 1.0
         return vectorize(deriv)
-
-
-if __name__ == '__main__':
-    assert False, 'Not intended for standalone execution.'

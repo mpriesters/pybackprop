@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Neural Network with Backpropagation.
 
@@ -150,7 +149,3 @@ class NeuralNetwork:
         for layer in self.layers:
             input_values = layer.activate(input_values=input_values)
         return input_values
-
-
-if __name__ == '__main__':
-    assert False, 'Not intended for standalone execution.'
