@@ -129,21 +129,26 @@ class NeuralNetwork:
                 upd_weights = layer.update_weights(self.eta)
                 #print(upd_weights)
             #print(f'---> prediction: {prediction}')
-            pred_err = np.linalg.norm(y - prediction) ** 2
+            #pred_err = np.linalg.norm(y - prediction) ** 2
             #print(f'---> error: {pred_err}')
 
     def predict(self, x):
-        res = np.array([])
+        res = None
         for xi in x:
             activation = self.activate_network(xi)
-            res = np.append(res, activation)
+            if res is None:
+                res = activation
+            else:
+                res = np.vstack((res, activation))
+            pass
         return res
 
     def activate_network(self, x):
         if len(x) != self.num_inputs:
             raise ValueError((f'invalid length of input vector '
                               f'({len(x)}, expected {self.num_inputs})'))
-        input_values = x.copy()
+        activation = x.copy()  # first 'activation' is the inputs
         for layer in self.layers:
-            input_values = layer.activate(input_values=input_values)
-        return input_values
+            activation = layer.activate(input_values=activation)
+        # reshape result because we're stacking row vectors for the result set
+        return activation.reshape(1, activation.shape[0])
