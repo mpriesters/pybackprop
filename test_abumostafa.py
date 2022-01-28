@@ -7,7 +7,7 @@ e-Chapter 7, page 15
 Author: Matthias Priesters
 """
 
-from activation_function import vectorize
+from activation_function import col_vector
 import numpy as np
 import neural_network as nn
 
@@ -15,18 +15,18 @@ shape = (1, 2, 1, 1)
 example_weights = [
     np.array([[0.1, 0.2],
               [0.3, 0.4]]),
-    vectorize(np.array([0.2, 1, -3])),
-    vectorize(np.array([1, 2]))
+    col_vector(np.array([0.2, 1, -3])),
+    col_vector(np.array([1, 2]))
 ]
 net = nn.NeuralNetwork(
     shape=shape,
     activation_function='tanh',
     weights=example_weights,
     eta=1,
-    k=1,
+    max_iter=1,
 )
-X = vectorize(2)
-Y = vectorize(1)
+X = col_vector(2)
+Y = col_vector(1)
 
 net.fit(X, Y)
 

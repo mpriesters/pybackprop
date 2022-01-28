@@ -9,7 +9,7 @@ import numpy as np
 import numbers
 
 
-def vectorize(x):
+def col_vector(x):
     """Turn scalars and single-dimension arrays into column vector arrays."""
     if isinstance(x, (np.number, numbers.Complex)):
         return np.array([[x]])
@@ -35,11 +35,11 @@ class TanHyp(ActivationFunction):
 
     def function(self, x):
         res = np.tanh(x)
-        return vectorize(res)
+        return col_vector(res)
 
     def derivative(self, x):
         res = 1 - (self.function(x))**2
-        return vectorize(res)
+        return col_vector(res)
 
 
 class Sigmoid(ActivationFunction):
@@ -47,12 +47,12 @@ class Sigmoid(ActivationFunction):
 
     def function(self, x):
         res = 1 / (1 + np.exp(-x))
-        return vectorize(res)
+        return col_vector(res)
 
     def derivative(self, x):
         # source: https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e
         res = self.function(x) * (1 - self.function(x))
-        return vectorize(res)
+        return col_vector(res)
 
 
 class Relu(ActivationFunction):
@@ -60,8 +60,8 @@ class Relu(ActivationFunction):
 
     def function(self, x):
         res = np.maximum(0, x)
-        return vectorize(res)
+        return col_vector(res)
 
     def derivative(self, x):
-        deriv = 0.0 if x < 0.0 else 1.0
-        return vectorize(deriv)
+        vec_deriv = np.vectorize(lambda s: 0.0 if s < 0.0 else 1.0)
+        return col_vector(vec_deriv(x))

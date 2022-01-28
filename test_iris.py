@@ -6,7 +6,7 @@ Uses data from the Iris dataset for evaluation.
 Author: Matthias Priesters
 """
 
-from activation_function import vectorize
+from activation_function import col_vector
 from sklearn.datasets import load_iris
 import numpy as np
 import neural_network as nn
@@ -16,7 +16,7 @@ X = iris['data']
 Y = None
 act = 'sigmoid'
 eta = 1
-k = 20000
+k = 50000
 
 # Y is a one-hot encoded version of target
 tgt = iris['target']
@@ -35,7 +35,7 @@ net = nn.NeuralNetwork(
     shape=shape,
     activation_function=act,
     eta=eta,
-    k=k,
+    max_iter=k,
 )
 
 net.fit(X, Y)

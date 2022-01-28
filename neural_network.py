@@ -4,7 +4,7 @@ Neural Network with Backpropagation.
 Author: Matthias Priesters
 """
 
-from activation_function import vectorize, TanHyp, Sigmoid, Relu
+from activation_function import col_vector, TanHyp, Sigmoid, Relu
 import numpy as np
 
 
@@ -38,24 +38,20 @@ class NeuralNetworkLayer:
     def activate(self, input_values):
         # prepend bias node to layer inputs
         self.input_values = np.vstack([np.array([[1.0]]),
-                                       vectorize(input_values)])
-        self.signal = vectorize(np.transpose(self.weights)
-                                @ self.input_values)
+                                       col_vector(input_values)])
+        self.signal = col_vector(np.transpose(self.weights)
+                                 @ self.input_values)
         self.activation = self.theta.function(self.signal)
-        #print('weights: ' + str(self.weights))
-        #print('output: ' + str(self.activation))
         return self.activation
 
     def initialize_delta(self, y):
-        self.delta = vectorize(2 * (self.activation - y)
-                               * self.theta.derivative(self.signal))
-        #print('delta: ' + str(self.delta))
+        self.delta = col_vector(2 * (self.activation - y)
+                                * self.theta.derivative(self.signal))
         return self.delta, self.weights[1:]  # leave out the bias weight
 
     def compute_delta(self, delta_next, weights_next):
-        self.delta = vectorize(self.theta.derivative(self.signal)
-                               * (weights_next @ delta_next))
-        #print('delta: ' + str(self.delta))
+        self.delta = col_vector(self.theta.derivative(self.signal)
+                                * (weights_next @ delta_next))
         return self.delta, self.weights[1:]  # leave out the bias weight
 
     def update_weights(self, eta):
@@ -72,7 +68,7 @@ class NeuralNetwork:
                  weights=None,
                  activation_function='tanh',
                  eta=1,
-                 k=1):
+                 max_iter=1):
         # choose proper Activation Function
         if activation_function == 'tanh':
             self.activation_function = TanHyp()
@@ -84,7 +80,7 @@ class NeuralNetwork:
             raise ValueError((f'Unknown Activation Function '
                               f'"{activation_function}"'))
         self.eta = eta  # learning rate for weight update
-        self.k = k  # maximum number of training iterations
+        self.max_iter = max_iter  # maximum number of training iterations
         # initialize Network Layers
         self.layers = []
         if type(shape) not in [list, tuple]:
@@ -108,14 +104,14 @@ class NeuralNetwork:
 
     def fit(self, x_train, y_train):
         # TODO: do this in a loop until the error becomes small
-        for k in range(0, self.k):
+        for k in range(0, self.max_iter):
             # fit to random data point
             i = np.random.randint(len(x_train))
-            x = vectorize(x_train[i])
-            y = vectorize(y_train[i])
+            x = col_vector(x_train[i])
+            y = col_vector(y_train[i])
 
-            print(f'==========\nEPOCH {k}')
-            print(f'i: {i},\nx: {x},\ny: {y}')
+            #print(f'==========\nEPOCH {k}')
+            #print(f'i: {i},\nx: {x},\ny: {y}')
             # calculate current prediction
             prediction = self.activate_network(x)
 
@@ -132,9 +128,9 @@ class NeuralNetwork:
             for layer in self.layers:
                 upd_weights = layer.update_weights(self.eta)
                 #print(upd_weights)
-            print(f'---> prediction: {prediction}')
+            #print(f'---> prediction: {prediction}')
             pred_err = np.linalg.norm(y - prediction) ** 2
-            print(f'---> error: {pred_err}')
+            #print(f'---> error: {pred_err}')
 
     def predict(self, x):
         res = np.array([])
