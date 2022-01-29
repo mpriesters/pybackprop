@@ -5,6 +5,7 @@ Author: Matthias Priesters
 """
 
 from activation_function import col_vector, TanHyp, Sigmoid, Relu
+from sklearn.metrics import mean_squared_error
 import numpy as np
 
 
@@ -17,7 +18,8 @@ class NeuralNetworkLayer:
                  activation_function,
                  layer_num,
                  weights=None,
-                 output_layer=False):
+                 output_layer=False,
+                 verbose=False):
         # initialize weights randomly between -0.01 and 0.01 if no weights are given
         if weights is not None:
             self.weights = weights
@@ -32,8 +34,9 @@ class NeuralNetworkLayer:
         self.signal = None
         self.activation = None
         self.delta = None
-        print((f'initializing layer {layer_num} with {inputs} inputs, '
-               f'{nodes} nodes, function {self.theta.__class__.__name__}'))
+        if verbose:
+            print((f'initializing layer {layer_num} with {inputs} inputs, '
+                   f'{nodes} nodes, function {self.theta.__class__.__name__}'))
 
     def activate(self, input_values):
         # prepend bias node to layer inputs
@@ -68,7 +71,7 @@ class NeuralNetwork:
                  weights=None,
                  activation_function='tanh',
                  eta=1,
-                 max_iter=1):
+                 verbose=False):
         # choose proper Activation Function
         if activation_function == 'tanh':
             self.activation_function = TanHyp()
@@ -80,7 +83,7 @@ class NeuralNetwork:
             raise ValueError((f'Unknown Activation Function '
                               f'"{activation_function}"'))
         self.eta = eta  # learning rate for weight update
-        self.max_iter = max_iter  # maximum number of training iterations
+        self.verbose = verbose
         # initialize Network Layers
         self.layers = []
         if type(shape) not in [list, tuple]:
@@ -99,38 +102,41 @@ class NeuralNetwork:
                     layer_num=i,
                     weights=set_weights,
                     output_layer=True if i == len(shape)-1 else False,
+                    verbose=self.verbose,
                 )
             )
 
-    def fit(self, x_train, y_train):
-        # TODO: do this in a loop until the error becomes small
-        for k in range(0, self.max_iter):
-            # fit to random data point
-            i = np.random.randint(len(x_train))
-            x = col_vector(x_train[i])
-            y = col_vector(y_train[i])
+    def fit(self,
+            x_train,
+            y_train,
+            epochs=1):
+        indexes = np.arange(len(x_train))
+        for epoch in range(0, epochs):
+            # run one iteration over the entire training set in random order
+            np.random.shuffle(indexes)
+            for i in indexes:
+                x_this = col_vector(x_train[i])
+                y_this = col_vector(y_train[i])
+                # forward-propagate activation
+                self.activate_network(x_this)
+                # backpropagate error
+                delta = None
+                weights = None
+                for layer in reversed(self.layers):
+                    if layer.output_layer:
+                        delta, weights = layer.initialize_delta(y_this)
+                    else:
+                        delta, weights = layer.compute_delta(delta, weights)
+                # update weights according to error
+                for layer in self.layers:
+                    layer.update_weights(self.eta)
 
-            #print(f'==========\nEPOCH {k}')
-            #print(f'i: {i},\nx: {x},\ny: {y}')
-            # calculate current prediction
-            prediction = self.activate_network(x)
+            if self.verbose:
+                # print out error for prediction with current weights
+                y_pred = self.predict(x_train)
+                mse = mean_squared_error(y_train, y_pred)
+                print(f'EPOCH {epoch + 1}, error: {mse}')
 
-            # backpropagate error
-            # iterating backwards through the layers
-            delta = None
-            weights = None
-            for layer in reversed(self.layers):
-                if layer.output_layer:
-                    delta, weights = layer.initialize_delta(y)
-                else:
-                    delta, weights = layer.compute_delta(delta, weights)
-            # update weights according to error
-            for layer in self.layers:
-                upd_weights = layer.update_weights(self.eta)
-                #print(upd_weights)
-            #print(f'---> prediction: {prediction}')
-            #pred_err = np.linalg.norm(y - prediction) ** 2
-            #print(f'---> error: {pred_err}')
 
     def predict(self, x):
         res = None

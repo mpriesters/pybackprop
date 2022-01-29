@@ -23,12 +23,12 @@ net = nn.NeuralNetwork(
     activation_function='tanh',
     weights=example_weights,
     eta=1,
-    max_iter=1,
+    verbose=False,
 )
 X = col_vector(2)
 Y = col_vector(1)
 
-net.fit(X, Y)
+net.fit(X, Y, epochs=1)
 
 # compare values with textbook example:
 for layer in net.layers:

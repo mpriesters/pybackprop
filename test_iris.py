@@ -16,7 +16,6 @@ iris = load_iris()
 X = iris['data']
 y = None
 act = 'sigmoid'
-k = 50000
 eta = None
 comp = 0
 
@@ -46,14 +45,15 @@ net = nn.NeuralNetwork(
     shape=shape,
     activation_function=act,
     eta=eta,
-    max_iter=k,
+    verbose=True,
 )
 
-net.fit(X_train, y_train)
+net.fit(X_train, y_train, epochs=100)
 
 y_trainpred = net.predict(X_train)
 y_pred = net.predict(X_test)
 
+print('---------')
 print(f'Error in-sample: {mean_squared_error(y_train, y_trainpred)}')
 print(f'Error out-of-sample: {mean_squared_error(y_test, y_pred)}')
 
