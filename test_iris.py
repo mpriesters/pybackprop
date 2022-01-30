@@ -67,6 +67,7 @@ def binarize(y_vec):
     binvec = np.vectorize(lambda val: neg if val < comp else 1)
     return binvec(y_vec)
 
+
 y_trainpred_bin = binarize(y_trainpred)
 y_pred_bin = binarize(y_pred)
 

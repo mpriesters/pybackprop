@@ -109,7 +109,8 @@ class NeuralNetwork:
     def fit(self,
             x_train,
             y_train,
-            epochs=1):
+            epochs=1,
+            eta=None):
         indexes = np.arange(len(x_train))
         for epoch in range(0, epochs):
             # run one iteration over the entire training set in random order
@@ -128,15 +129,15 @@ class NeuralNetwork:
                     else:
                         delta, weights = layer.compute_delta(delta, weights)
                 # update weights according to error
+                my_eta = eta or self.eta  # optional learning rate override
                 for layer in self.layers:
-                    layer.update_weights(self.eta)
+                    layer.update_weights(my_eta)
 
             if self.verbose:
                 # print out error for prediction with current weights
                 y_pred = self.predict(x_train)
                 mse = mean_squared_error(y_train, y_pred)
                 print(f'EPOCH {epoch + 1}, error: {mse}')
-
 
     def predict(self, x):
         res = None
