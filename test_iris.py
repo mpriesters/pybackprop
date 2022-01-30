@@ -8,7 +8,7 @@ Author: Matthias Priesters
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.metrics import mean_squared_error, accuracy_score, confusion_matrix, f1_score
 import numpy as np
 import neural_network as nn
 
@@ -40,7 +40,11 @@ for t in range(0, len(tgt)):
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, random_state=42)
 
-shape = (4, 10, 3)
+shape = (
+    len(X_train[0]),
+    10,
+    len(y_train[0]),
+)
 net = nn.NeuralNetwork(
     shape=shape,
     activation_function=act,
@@ -58,18 +62,23 @@ print(f'Error in-sample: {mean_squared_error(y_train, y_trainpred)}')
 print(f'Error out-of-sample: {mean_squared_error(y_test, y_pred)}')
 
 
-def binarize(y_vec):
-    """Turn a vector of floats into binaries.
-    Positive is 1.
-    Negative can be 0 or -1 depending on the activation function.
-    """
-    neg = -1 if comp == 0 else 0
-    binvec = np.vectorize(lambda val: neg if val < comp else 1)
-    return binvec(y_vec)
+def relabel(y_vec):
+    """Turn three-element vectors into labels.
+    The index of the largest value corresponds to the class label
+    according to iris.target."""
+    return np.array([np.argmax(v) for v in y_vec])
 
 
-y_trainpred_bin = binarize(y_trainpred)
-y_pred_bin = binarize(y_pred)
+y_train_lbl = relabel(y_train)
+y_test_lbl = relabel(y_test)
+y_trainpred_lbl = relabel(y_trainpred)
+y_pred_lbl = relabel(y_pred)
 
-print(f'Accuracy in-sample: {accuracy_score(y_train, y_trainpred_bin)}')
-print(f'Accuracy out-of-sample: {accuracy_score(y_test, y_pred_bin)}')
+print(f'Accuracy in-sample: {accuracy_score(y_train_lbl, y_trainpred_lbl)}')
+print(f'Accuracy out-of-sample: {accuracy_score(y_test_lbl, y_pred_lbl)}')
+
+print(f'F1 in-sample: {f1_score(y_train_lbl, y_trainpred_lbl, average=None)}')
+print(f'F1 out-of-sample: {f1_score(y_test_lbl, y_pred_lbl, average=None)}')
+
+print(f'Confusion matrix in-sample:\n{confusion_matrix(y_train_lbl, y_trainpred_lbl)}')
+print(f'Confusion matrix out-of-sample:\n{confusion_matrix(y_test_lbl, y_pred_lbl)}')
