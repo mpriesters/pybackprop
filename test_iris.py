@@ -22,12 +22,12 @@ comp = 0
 # Y is a one-hot encoded version of target
 tgt = iris['target']
 if act == 'tanh':
-    eta = 0.0005
+    eta = 0.001
     y = np.ones((len(tgt), 3))
     y *= -1
     comp = 0
 elif act == 'sigmoid':
-    eta = 0.35
+    eta = 0.1
     y = np.zeros((len(tgt), 3))
     comp = 0.5
 elif act == 'relu':
@@ -40,19 +40,17 @@ for t in range(0, len(tgt)):
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, random_state=42)
 
-shape = (
-    len(X_train[0]),
-    10,
-    len(y_train[0]),
-)
+shape = [
+    [len(X_train[0])],
+    [10, act],
+    [len(y_train[0]), act],
+]
 net = nn.NeuralNetwork(
     shape=shape,
-    activation_function=act,
-    eta=eta,
     verbose=True,
 )
 
-net.fit(X_train, y_train, epochs=100)
+net.fit(X_train, y_train, epochs=200, eta=eta)
 
 y_trainpred = net.predict(X_train)
 y_pred = net.predict(X_test)

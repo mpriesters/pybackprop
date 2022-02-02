@@ -11,7 +11,12 @@ from activation_function import col_vector
 import numpy as np
 import neural_network as nn
 
-shape = (1, 2, 1, 1)
+shape = [
+    [1],
+    [2, 'tanh'],
+    [1, 'tanh'],
+    [1, 'tanh'],
+]
 example_weights = [
     np.array([[0.1, 0.2],
               [0.3, 0.4]]),
@@ -20,7 +25,6 @@ example_weights = [
 ]
 net = nn.NeuralNetwork(
     shape=shape,
-    activation_function='tanh',
     weights=example_weights,
     eta=1,
     verbose=False,

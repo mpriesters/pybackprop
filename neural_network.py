@@ -26,9 +26,19 @@ class NeuralNetworkLayer:
         else:
             self.weights = 0.02 * np.random.rand(inputs + 1, nodes) - 0.01
         # static settings for this layer
-        self.theta = activation_function
         self.layer_num = layer_num
         self.output_layer = output_layer
+        # choose proper Activation Function
+        if activation_function == 'tanh':
+            self.theta = TanHyp()
+        elif activation_function == 'sigmoid':
+            self.theta = Sigmoid()
+        elif activation_function == 'relu':
+            self.theta = Relu()
+        else:
+            raise ValueError((f'Unknown Activation Function '
+                              f'"{activation_function}"'))
+
         # work variables for this layer
         self.input_values = None
         self.signal = None
@@ -69,26 +79,15 @@ class NeuralNetwork:
     def __init__(self,
                  shape,
                  weights=None,
-                 activation_function='tanh',
                  eta=1,
                  verbose=False):
-        # choose proper Activation Function
-        if activation_function == 'tanh':
-            self.activation_function = TanHyp()
-        elif activation_function == 'sigmoid':
-            self.activation_function = Sigmoid()
-        elif activation_function == 'relu':
-            self.activation_function = Relu()
-        else:
-            raise ValueError((f'Unknown Activation Function '
-                              f'"{activation_function}"'))
         self.eta = eta  # learning rate for weight update
         self.verbose = verbose
         # initialize Network Layers
         self.layers = []
         if type(shape) not in [list, tuple]:
             raise ValueError('invalid format for shape')
-        self.num_inputs = shape[0]
+        self.num_inputs = shape[0][0]
         for i in range(1, len(shape)):
             # preset imported weights, if any
             set_weights = None
@@ -96,9 +95,9 @@ class NeuralNetwork:
                 set_weights = weights[i-1]
             self.layers.append(
                 NeuralNetworkLayer(
-                    inputs=shape[i-1],
-                    nodes=shape[i],
-                    activation_function=self.activation_function,
+                    inputs=shape[i-1][0],
+                    nodes=shape[i][0],
+                    activation_function=shape[i][1],
                     layer_num=i,
                     weights=set_weights,
                     output_layer=True if i == len(shape)-1 else False,
