@@ -7,7 +7,7 @@ e-Chapter 7, page 15
 Author: Matthias Priesters
 """
 
-from activation_function import col_vector
+from neural_network import col_vector
 import numpy as np
 import neural_network as nn
 

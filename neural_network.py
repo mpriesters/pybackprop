@@ -4,9 +4,9 @@ Neural Network with Backpropagation.
 Author: Matthias Priesters
 """
 
-from activation_function import col_vector, TanHyp, Sigmoid, Relu
 from sklearn.metrics import mean_squared_error
 import numpy as np
+import numbers
 
 
 class NeuralNetworkLayer:
@@ -20,24 +20,18 @@ class NeuralNetworkLayer:
                  weights=None,
                  output_layer=False,
                  verbose=False):
-        # initialize weights randomly between -0.01 and 0.01 if no weights are given
-        if weights is not None:
-            self.weights = weights
-        else:
+        # initialize weights randomly between -0.01 and 0.01
+        # if no weights are given
+        if weights is None:
             self.weights = 0.02 * np.random.rand(inputs + 1, nodes) - 0.01
+        else:
+            self.weights = weights
         # static settings for this layer
         self.layer_num = layer_num
         self.output_layer = output_layer
-        # choose proper Activation Function
-        if activation_function == 'tanh':
-            self.theta = TanHyp()
-        elif activation_function == 'sigmoid':
-            self.theta = Sigmoid()
-        elif activation_function == 'relu':
-            self.theta = Relu()
-        else:
-            raise ValueError((f'Unknown Activation Function '
-                              f'"{activation_function}"'))
+        # get activation function and its derivative
+        self.theta, self.theta_prime = get_activation_function(
+            activation_function)
 
         # work variables for this layer
         self.input_values = None
@@ -46,7 +40,7 @@ class NeuralNetworkLayer:
         self.delta = None
         if verbose:
             print((f'initializing layer {layer_num} with {inputs} inputs, '
-                   f'{nodes} nodes, function {self.theta.__class__.__name__}'))
+                   f'{nodes} nodes, function {activation_function}'))
 
     def activate(self, input_values):
         # prepend bias node to layer inputs
@@ -54,16 +48,16 @@ class NeuralNetworkLayer:
                                        col_vector(input_values)])
         self.signal = col_vector(np.transpose(self.weights)
                                  @ self.input_values)
-        self.activation = self.theta.function(self.signal)
+        self.activation = self.theta(self.signal)
         return self.activation
 
     def initialize_delta(self, y):
         self.delta = col_vector(2 * (self.activation - y)
-                                * self.theta.derivative(self.signal))
+                                * self.theta_prime(self.signal))
         return self.delta, self.weights[1:]  # leave out the bias weight
 
     def compute_delta(self, delta_next, weights_next):
-        self.delta = col_vector(self.theta.derivative(self.signal)
+        self.delta = col_vector(self.theta_prime(self.signal)
                                 * (weights_next @ delta_next))
         return self.delta, self.weights[1:]  # leave out the bias weight
 
@@ -158,3 +152,47 @@ class NeuralNetwork:
             activation = layer.activate(input_values=activation)
         # reshape result because we're stacking row vectors for the result set
         return activation.reshape(1, activation.shape[0])
+
+
+def get_activation_function(act):
+    """Provide function and derivative of activation function."""
+    if act not in [
+        'tanh',
+        'sigmoid',
+        'relu',
+        'lrelu',
+    ]:
+        raise ValueError(f'Invalid activation function: {act}')
+
+    if act == 'tanh':
+        return (
+            lambda _: np.tanh(_),
+            lambda _: 1 - (np.tanh(_)) ** 2,
+        )
+    elif act == 'sigmoid':
+        def sigm(x):
+            return 1 / (1 + np.exp(-x))
+        return (
+            sigm,
+            lambda _: sigm(_) * (1 - sigm(_)),
+        )
+    elif act == 'relu':
+        return (
+            lambda _: np.maximum(0, _),
+            np.vectorize(lambda _: 0.0 if _ < 0.0 else 1.0),
+        )
+    elif act == 'lrelu':
+        return (
+            lambda _: np.maximum(0.01 * _, _),
+            np.vectorize(lambda _: 0.01 if _ < 0.0 else 1.0),
+        )
+    return None
+
+
+def col_vector(x):
+    """Turn scalars and single-dimension arrays into column vector arrays."""
+    if isinstance(x, (np.number, numbers.Complex)):
+        return np.array([[x]])
+    elif isinstance(x, np.ndarray) and len(x.shape) == 1:
+        return x.reshape(x.shape[0], 1)
+    return x
