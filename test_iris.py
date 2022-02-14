@@ -2,13 +2,14 @@
 """
 Test script for Neural Network with Backpropagation.
 Uses data from the Iris dataset for evaluation.
-
-Author: Matthias Priesters
 """
+
+# Author: Matthias Priesters
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, accuracy_score, confusion_matrix, f1_score
+from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.metrics import confusion_matrix, f1_score
 import numpy as np
 import neural_network as nn
 
@@ -61,7 +62,7 @@ print(f'Error out-of-sample: {mean_squared_error(y_test, y_pred)}')
 
 
 def relabel(y_vec):
-    """Turn three-element vectors into labels.
+    """Turn multi-element vectors into labels.
     The index of the largest value corresponds to the class label
     according to iris.target."""
     return np.array([np.argmax(v) for v in y_vec])

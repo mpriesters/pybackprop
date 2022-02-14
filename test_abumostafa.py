@@ -3,9 +3,9 @@
 Test script for Neural Network with Backpropagation.
 Implements Example 7.1 from Abu-Mostafa et al.: Learning from Data
 e-Chapter 7, page 15
-
-Author: Matthias Priesters
 """
+
+# Author: Matthias Priesters
 
 from neural_network import col_vector
 import numpy as np
